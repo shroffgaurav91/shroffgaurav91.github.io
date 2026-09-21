@@ -1,0 +1,490 @@
+<title>On My Plate</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F8F7; --surface:#FFFFFF; --surface-2:#ECF2F0;
+    --ink:#15201E; --ink-2:#485B57; --muted:#7B8E89;
+    --line:#DCE5E2; --line-strong:#C4D2CE;
+    --accent:#0C6E5B; --accent-ink:#FFFFFF; --accent-soft:#DFEFE9;
+    --danger:#A8412F;
+    --c-money-fg:#1F5FA8; --c-money-bg:#E3EDF9;
+    --c-errand-fg:#96590A; --c-errand-bg:#FAEEDB;
+    --c-home-fg:#78429A;  --c-home-bg:#F1E8F8;
+    --c-work-fg:#0C6E5B;  --c-work-bg:#DCEFE8;
+    --c-other-fg:#5A6A66; --c-other-bg:#E8EEEC;
+    --shadow:0 1px 2px rgba(20,35,32,.07), 0 10px 28px -16px rgba(20,35,32,.30);
+    --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --serif:"Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+    --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0D1413; --surface:#161F1D; --surface-2:#1E2926;
+      --ink:#E7EEEB; --ink-2:#B0C0BB; --muted:#7D908B;
+      --line:#262F2D; --line-strong:#36433F;
+      --accent:#46C2A2; --accent-ink:#06211B; --accent-soft:#12302A;
+      --danger:#E08272;
+      --c-money-fg:#8CBDF0; --c-money-bg:#152536;
+      --c-errand-fg:#E3B472; --c-errand-bg:#312415;
+      --c-home-fg:#CBA5E2;  --c-home-bg:#271A31;
+      --c-work-fg:#5FCFAF;  --c-work-bg:#0F2E28;
+      --c-other-fg:#9AABA6; --c-other-bg:#1E2825;
+      --shadow:0 1px 2px rgba(0,0,0,.45), 0 10px 28px -16px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0D1413; --surface:#161F1D; --surface-2:#1E2926;
+    --ink:#E7EEEB; --ink-2:#B0C0BB; --muted:#7D908B;
+    --line:#262F2D; --line-strong:#36433F;
+    --accent:#46C2A2; --accent-ink:#06211B; --accent-soft:#12302A;
+    --danger:#E08272;
+    --c-money-fg:#8CBDF0; --c-money-bg:#152536;
+    --c-errand-fg:#E3B472; --c-errand-bg:#312415;
+    --c-home-fg:#CBA5E2;  --c-home-bg:#271A31;
+    --c-work-fg:#5FCFAF;  --c-work-bg:#0F2E28;
+    --c-other-fg:#9AABA6; --c-other-bg:#1E2825;
+    --shadow:0 1px 2px rgba(0,0,0,.45), 0 10px 28px -16px rgba(0,0,0,.7);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{height:100%}
+  body{
+    height:100%; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.45;
+    display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .gut{padding-inline:16px; max-width:720px; margin-inline:auto; width:100%}
+  button{font:inherit; color:inherit; background:none; border:none; cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+
+  /* ---- header ---- */
+  header{border-bottom:1px solid var(--line); background:var(--bg)}
+  .bar{display:flex; align-items:baseline; gap:10px; padding-block:14px 10px}
+  .wordmark{font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:-.01em; margin:0}
+  .status{margin-left:auto; display:flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--muted); flex:none}
+  .dot.live{background:var(--accent)}
+  .dot.local{background:var(--c-errand-fg)}
+
+  .tabs{display:flex; gap:4px; padding-bottom:10px}
+  .tab{display:flex; align-items:baseline; gap:6px; padding:5px 11px; border-radius:999px;
+    font-size:13.5px; font-weight:500; color:var(--ink-2); border:1px solid transparent}
+  .tab .n{font-family:var(--mono); font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .tab:hover{background:var(--surface-2)}
+  .tab[aria-selected="true"]{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+  .tab[aria-selected="true"] .n{color:var(--accent)}
+
+  /* ---- list ---- */
+  main{overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+  .list{padding-block:14px 26px; display:flex; flex-direction:column; gap:20px}
+  .group{display:flex; flex-direction:column; gap:7px}
+  .dayhead{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--muted); padding-left:2px}
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); overflow:hidden}
+
+  .item{display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:start; gap:11px;
+    padding:11px 12px 11px 13px; border-top:1px solid var(--line)}
+  .item:first-child{border-top:none}
+
+  .check{width:21px; height:21px; margin-top:1px; border-radius:50%; flex:none;
+    border:1.5px solid var(--line-strong); background:var(--surface); display:grid; place-items:center;
+    transition:background .12s ease, border-color .12s ease}
+  .check:hover{border-color:var(--accent)}
+  .check svg{width:12px; height:12px; opacity:0; stroke:var(--accent-ink); stroke-width:2.6;
+    fill:none; stroke-linecap:round; stroke-linejoin:round}
+  .item.done .check{background:var(--accent); border-color:var(--accent)}
+  .item.done .check svg{opacity:1}
+
+  .body{min-width:0}
+  .text{margin:0; font-size:15px; color:var(--ink); overflow-wrap:anywhere; white-space:pre-wrap}
+  .item.done .text{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--line-strong)}
+  .meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:5px}
+  .chip{padding:2px 8px; border-radius:5px; font-size:11px; font-weight:600; letter-spacing:.02em;
+    border:1px solid transparent}
+  .chip:hover{border-color:currentColor}
+  .chip.money{color:var(--c-money-fg); background:var(--c-money-bg)}
+  .chip.errand{color:var(--c-errand-fg); background:var(--c-errand-bg)}
+  .chip.home{color:var(--c-home-fg); background:var(--c-home-bg)}
+  .chip.work{color:var(--c-work-fg); background:var(--c-work-bg)}
+  .chip.other{color:var(--c-other-fg); background:var(--c-other-bg)}
+  .stamp{font-family:var(--mono); font-size:10.5px; color:var(--muted)}
+
+  .kill{width:26px; height:26px; border-radius:6px; color:var(--muted); display:grid; place-items:center;
+    font-size:16px; line-height:1; opacity:.55; flex:none}
+  .kill:hover{opacity:1; color:var(--danger); background:var(--surface-2)}
+
+  /* ---- empty ---- */
+  .empty{text-align:center; padding:52px 16px; color:var(--muted)}
+  .empty h2{font-family:var(--serif); font-weight:500; font-size:21px; color:var(--ink-2); margin:0 0 6px}
+  .empty p{margin:0; font-size:13.5px; max-width:34ch; margin-inline:auto; line-height:1.55}
+
+  .sweep{display:flex; justify-content:center; padding-top:2px}
+  .sweep button{font-family:var(--mono); font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--muted); padding:7px 12px; border-radius:7px}
+  .sweep button:hover{color:var(--danger); background:var(--surface-2)}
+
+  /* ---- composer ---- */
+  footer{border-top:1px solid var(--line); background:var(--surface);
+    padding-bottom:env(safe-area-inset-bottom, 0px)}
+  .compose{display:flex; align-items:flex-end; gap:9px; padding-block:11px}
+  #entry{flex:1; min-width:0; resize:none; font:inherit; font-size:16px; line-height:1.4;
+    color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:11px;
+    padding:10px 13px; max-height:132px; overflow-y:auto}
+  #entry::placeholder{color:var(--muted)}
+  #entry:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .send{flex:none; width:42px; height:42px; border-radius:11px; background:var(--accent); color:var(--accent-ink);
+    display:grid; place-items:center; transition:opacity .12s ease}
+  .send:disabled{opacity:.3; cursor:default}
+  .send svg{width:18px; height:18px; stroke:currentColor; stroke-width:2.2; fill:none;
+    stroke-linecap:round; stroke-linejoin:round}
+  .hint{font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--muted);
+    padding-bottom:9px; text-align:center}
+
+  #toast{position:fixed; left:50%; bottom:86px; transform:translateX(-50%) translateY(6px);
+    background:var(--ink); color:var(--bg); font-size:12.5px; padding:8px 14px; border-radius:8px;
+    opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease; z-index:20;
+    max-width:calc(100% - 32px)}
+  #toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
+</style>
+
+<header>
+  <div class="gut">
+    <div class="bar">
+      <h1 class="wordmark">On My Plate</h1>
+      <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting</span></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Filter">
+      <button class="tab" id="tab-open" role="tab" aria-selected="true" data-filter="open">Open <span class="n" id="n-open">0</span></button>
+      <button class="tab" id="tab-done" role="tab" aria-selected="false" data-filter="done">Done <span class="n" id="n-done">0</span></button>
+      <button class="tab" id="tab-all" role="tab" aria-selected="false" data-filter="all">All <span class="n" id="n-all">0</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="scroll">
+  <div class="list gut" id="list"></div>
+</main>
+
+<footer>
+  <div class="gut">
+    <div class="compose">
+      <textarea id="entry" rows="1" placeholder="What landed on your plate?" aria-label="Capture an item"></textarea>
+      <button class="send" id="send" disabled aria-label="Save item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+    <div class="hint" id="hint">Enter saves · Shift+Enter for a new line · paste a list to add each line</div>
+  </div>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LS = "onmyplate.v1";
+  var CATS = ["money","errand","home","work","other"];
+  var LABEL = {money:"Money", errand:"Errand", home:"Home", work:"Work", other:"Other"};
+
+  // Longer stems match as word prefixes; short or ambiguous terms must match whole.
+  var RULES = [
+    ["money",  {stems:["invest","insur","premium","mutual fund","portfolio","demat","deposit","refund","subscri","dividend"],
+                words:["ipo","ipos","sip","sips","stock","stocks","share","shares","nps","ppf","elss","fd","emi","loan","loans","bank","tax","taxes","itr","folio","policy","policies","nifty","sensex","rent","bill","bills","pay","paid","transfer","fund","funds","salary","budget"]}],
+    ["errand", {stems:["grocer","groceri","veget","pharmac","medicin","deliver","courier","laundr","restaurant","reserv"],
+                words:["grocery","buy","order","orders","milk","bread","eggs","fruit","fruits","chemist","pickup","pick","drop","book","ticket","tickets","flight","cab","taxi","petrol","fuel","atm","parcel","amazon","blinkit","zepto","swiggy","zomato","bigbasket","gift"]}],
+    ["home",   {stems:["plumb","electric","carpent","maintenan","clean","repair","paint"],
+                words:["fix","gas","cylinder","maid","geyser","wifi","broadband","society","water","garbage","bulb","fan","filter","house","home","kitchen","rto","passport"]}],
+    ["work",   {stems:["roadmap","stakeholder","present","metric","dashboard","interview","candidat","releas","retro"],
+                words:["deck","slide","slides","prd","spec","review","ship","launch","standup","sync","okr","okrs","hire","hiring","sprint","jira","figma","report","team","meeting","etmoney","product","feature"]}]
+  ];
+
+  function rxEsc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  var MATCHERS = RULES.map(function(r){
+    var cat = r[0], parts = [];
+    if (r[1].stems.length) parts.push("\\b(?:" + r[1].stems.map(rxEsc).join("|") + ")");
+    if (r[1].words.length) parts.push("\\b(?:" + r[1].words.map(rxEsc).join("|") + ")\\b");
+    return [cat, new RegExp(parts.join("|"), "i")];
+  });
+  function categorize(t){
+    for (var i=0;i<MATCHERS.length;i++) if (MATCHERS[i][1].test(t)) return MATCHERS[i][0];
+    return "other";
+  }
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function rid(){ return "x" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  function rel(iso){
+    var d = new Date(iso); if (isNaN(d)) return "";
+    var s = (Date.now() - d.getTime())/1000;
+    if (s < 60) return "just now";
+    if (s < 3600) return Math.floor(s/60) + "m ago";
+    if (s < 86400) return Math.floor(s/3600) + "h ago";
+    return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  }
+  function dayKey(iso){
+    var d = new Date(iso); if (isNaN(d)) return "Undated";
+    var a = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var n = new Date(); var b = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    var diff = Math.round((b - a)/86400000);
+    if (diff <= 0) return "Today";
+    if (diff === 1) return "Yesterday";
+    if (diff < 7) return d.toLocaleDateString(undefined,{weekday:"long"});
+    return d.toLocaleDateString(undefined,{month:"long",day:"numeric"});
+  }
+
+  // ---------- state ----------
+  var items = [];
+  var filter = "open";
+  var dbRef = null;        // db collection ref once the capability resolves
+  var readOnly = false;
+
+  function lsRead(){ try { var v = JSON.parse(localStorage.getItem(LS)); return Array.isArray(v) ? v : []; } catch(e){ return []; } }
+  function lsWrite(v){ try { localStorage.setItem(LS, JSON.stringify(v)); } catch(e){} }
+
+  function sortItems(a){
+    return a.slice().sort(function(x,y){ return String(y.createdAt||"").localeCompare(String(x.createdAt||"")); });
+  }
+
+  // ---------- toast ----------
+  var toastEl = document.getElementById("toast"), toastT = null;
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.classList.add("on");
+    clearTimeout(toastT); toastT = setTimeout(function(){ toastEl.classList.remove("on"); }, 2600);
+  }
+
+  // ---------- status ----------
+  function setStatus(kind, text){
+    var dot = document.getElementById("dot");
+    dot.className = "dot" + (kind ? " " + kind : "");
+    document.getElementById("statusText").textContent = text;
+  }
+
+  // ---------- render ----------
+  var listEl = document.getElementById("list");
+
+  function visible(){
+    if (filter === "open") return items.filter(function(i){ return !i.done; });
+    if (filter === "done") return items.filter(function(i){ return i.done; });
+    return items;
+  }
+
+  function render(){
+    var open = items.filter(function(i){ return !i.done; }).length;
+    var done = items.length - open;
+    document.getElementById("n-open").textContent = open;
+    document.getElementById("n-done").textContent = done;
+    document.getElementById("n-all").textContent = items.length;
+
+    var rows = visible();
+    if (!rows.length){
+      listEl.innerHTML =
+        '<div class="empty"><h2>' +
+        (filter === "done" ? "Nothing finished yet" : filter === "open" ? "Nothing on your plate" : "Nothing here yet") +
+        '</h2><p>' +
+        (filter === "open"
+          ? "Next time someone hands you something, drop it in the box below and get on with your day."
+          : "Items you capture will collect here.") +
+        '</p></div>';
+      return;
+    }
+
+    var html = "", curDay = null, openGroup = false;
+    for (var i=0;i<rows.length;i++){
+      var it = rows[i], k = dayKey(it.createdAt);
+      if (k !== curDay){
+        if (openGroup) html += "</div></div>";
+        html += '<div class="group"><div class="dayhead">' + esc(k) + '</div><div class="panel">';
+        curDay = k; openGroup = true;
+      }
+      var cat = CATS.indexOf(it.category) >= 0 ? it.category : "other";
+      html +=
+        '<div class="item' + (it.done ? " done" : "") + '" data-id="' + esc(it.id) + '">' +
+          '<button class="check" data-act="toggle" aria-pressed="' + (it.done ? "true" : "false") +
+            '" aria-label="' + (it.done ? "Mark as not done" : "Mark as done") + '">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></button>' +
+          '<div class="body">' +
+            '<p class="text">' + esc(it.text) + '</p>' +
+            '<div class="meta">' +
+              '<button class="chip ' + cat + '" data-act="cycle" title="Tap to change category">' + LABEL[cat] + '</button>' +
+              '<span class="stamp">' + esc(rel(it.createdAt)) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="kill" data-act="delete" aria-label="Delete item">&times;</button>' +
+        '</div>';
+    }
+    if (openGroup) html += "</div></div>";
+
+    if (filter !== "open" && done > 0){
+      html += '<div class="sweep"><button id="sweep">Clear ' + done + ' finished</button></div>';
+    }
+    listEl.innerHTML = html;
+  }
+
+  // ---------- writes ----------
+  function localMutate(fn){ fn(); items = sortItems(items); lsWrite(items); render(); }
+
+  function writeFailed(err){
+    var code = err && err.code;
+    if (code === "invalid_argument" && !readOnly){
+      readOnly = true;
+      setStatus("local", "read only");
+      toast("This copy is read-only — ask for edit access to add items.");
+      return;
+    }
+    if (code === "quota_exceeded"){ toast("The list is full. Clear some finished items first."); return; }
+    toast("Couldn't save that. Try again in a moment.");
+  }
+
+  async function addItems(lines){
+    for (var i=0;i<lines.length;i++){
+      var text = lines[i];
+      var rec = { text:text, category:categorize(text), done:false, createdAt:new Date().toISOString(), doneAt:null };
+      if (dbRef){
+        try { await dbRef.add(rec); } catch(e){ writeFailed(e); return; }
+      } else {
+        (function(r){ localMutate(function(){ items.push(Object.assign({id:rid()}, r)); }); })(rec);
+      }
+    }
+  }
+
+  async function toggleItem(id){
+    var it = items.find(function(x){ return x.id === id; }); if (!it) return;
+    var next = !it.done;
+    var patch = { done:next, doneAt: next ? new Date().toISOString() : null };
+    if (dbRef){
+      try { await dbRef.doc(id).update(patch); } catch(e){ writeFailed(e); }
+    } else {
+      localMutate(function(){ it.done = patch.done; it.doneAt = patch.doneAt; });
+    }
+  }
+
+  async function cycleItem(id){
+    var it = items.find(function(x){ return x.id === id; }); if (!it) return;
+    var idx = CATS.indexOf(it.category); if (idx < 0) idx = CATS.length - 1;
+    var next = CATS[(idx + 1) % CATS.length];
+    if (dbRef){
+      try { await dbRef.doc(id).update({ category: next }); } catch(e){ writeFailed(e); }
+    } else {
+      localMutate(function(){ it.category = next; });
+    }
+  }
+
+  async function deleteItem(id){
+    if (dbRef){
+      try { await dbRef.doc(id).delete(); } catch(e){ writeFailed(e); }
+    } else {
+      localMutate(function(){ items = items.filter(function(x){ return x.id !== id; }); });
+    }
+  }
+
+  async function clearDone(){
+    var gone = items.filter(function(x){ return x.done; });
+    if (!gone.length) return;
+    if (dbRef){
+      for (var i=0;i<gone.length;i++){
+        try { await dbRef.doc(gone[i].id).delete(); } catch(e){ writeFailed(e); return; }
+      }
+    } else {
+      localMutate(function(){ items = items.filter(function(x){ return !x.done; }); });
+    }
+    toast("Cleared " + gone.length + " finished " + (gone.length === 1 ? "item" : "items") + ".");
+  }
+
+  // ---------- events ----------
+  listEl.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-act]");
+    if (btn){
+      var row = btn.closest(".item"); if (!row) return;
+      var id = row.getAttribute("data-id"), act = btn.getAttribute("data-act");
+      if (act === "toggle") toggleItem(id);
+      else if (act === "cycle") cycleItem(id);
+      else if (act === "delete") deleteItem(id);
+      return;
+    }
+    if (e.target.closest("#sweep")) clearDone();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+    t.addEventListener("click", function(){
+      filter = t.getAttribute("data-filter");
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(o){
+        o.setAttribute("aria-selected", o === t ? "true" : "false");
+      });
+      document.getElementById("scroll").scrollTop = 0;
+      render();
+    });
+  });
+
+  var entry = document.getElementById("entry"), sendBtn = document.getElementById("send");
+
+  function grow(){ entry.style.height = "auto"; entry.style.height = Math.min(entry.scrollHeight, 132) + "px"; }
+  function sync(){ sendBtn.disabled = entry.value.trim().length === 0; grow(); }
+
+  function submit(){
+    var raw = entry.value;
+    var lines = raw.split("\n").map(function(s){
+      return s.replace(/^\s*(?:[-*•–]|\d+[.)])\s+/, "").trim();
+    }).filter(function(s){ return s.length > 0; });
+    if (!lines.length) return;
+    entry.value = ""; sync();
+    addItems(lines).then(function(){
+      if (lines.length > 1) toast("Added " + lines.length + " items.");
+    });
+    if (filter === "done"){ document.getElementById("tab-open").click(); }
+  }
+
+  entry.addEventListener("input", sync);
+  entry.addEventListener("keydown", function(e){
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); submit(); }
+  });
+  sendBtn.addEventListener("click", submit);
+
+  // ---------- boot ----------
+  items = sortItems(lsRead());
+  render();
+  setStatus("", "connecting");
+
+  if (window.matchMedia && window.matchMedia("(pointer: fine)").matches){
+    try { entry.focus({ preventScroll:true }); } catch(e){ entry.focus(); }
+  }
+
+  // Keep relative stamps honest without rewriting anything in the store.
+  setInterval(function(){ if (items.length) render(); }, 60000);
+
+  (window.claude && window.claude.use ? window.claude.use("db") : Promise.resolve(null))
+    .then(function(db){
+      if (!db){
+        setStatus("local", "this device only");
+        document.getElementById("hint").textContent =
+          "Not syncing — items are saved in this browser only";
+        return;
+      }
+      dbRef = db.collection("items");
+      setStatus("live", "synced");
+      dbRef.orderBy("createdAt", "desc").limit(400).onSnapshot(
+        function(snap){
+          items = snap.docs.map(function(d){
+            var v = d.data() || {};
+            return { id:d.id, text:v.text || "", category:v.category || "other",
+                     done:!!v.done, createdAt:v.createdAt || "", doneAt:v.doneAt || null };
+          });
+          lsWrite(items);
+          render();
+        },
+        function(err){
+          dbRef = null;
+          setStatus("local", "this device only");
+          if (err && err.code === "revoked") toast("Sync stopped for this session.");
+          else toast("Lost sync — reload to reconnect.");
+        }
+      );
+    })
+    .catch(function(){ setStatus("local", "this device only"); });
+})();
+</script>

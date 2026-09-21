@@ -5,3 +5,7 @@ tagline: A blog dedicated to my learnings
 plugins:
   - jekyll-coffeescript
 
+
+# Source for the private quick-capture page (hosted as a Claude artifact, not on this site)
+exclude:
+  - tools
