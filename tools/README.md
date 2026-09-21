@@ -22,6 +22,10 @@ lives in the artifact's own database, never in this repository.
 - Syncs live across devices via the `db` capability. If `db` is unavailable the
   page falls back to `localStorage` and says so in the header rather than
   pretending to sync.
+- **Copy** emits the open items as plain text grouped by category, for pasting
+  into a document the session cannot reach directly (Notion, a local file). It
+  uses the async clipboard API and falls back to a selectable textarea when the
+  artifact sandbox blocks clipboard writes.
 
 To redeploy after editing, publish this file to the existing artifact URL rather
 than as a new one, so the URL and its stored items are preserved.
